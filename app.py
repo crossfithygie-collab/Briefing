@@ -19,9 +19,9 @@ from flask_cors import CORS
 
 import store
 from summarizer import build_briefing
-from collectors import gmail, youtube, podcasts
+import gmail, youtube, podcasts
 
-app = Flask(__name__, static_folder="web", static_url_path="")
+app = Flask(__name__, static_folder=".", static_url_path="")
 CORS(app)
 
 COLLECT_TOKEN = os.environ.get("COLLECT_TOKEN", "")  # protège le déclenchement de collecte
@@ -150,9 +150,12 @@ def api_add():
     return jsonify(ok=True)
 
 
+@app.get("/")
+def root():
+    return send_from_directory(".", "index.html")
 
 
-
+# ---------------- scheduler ----------------
 # ---------------- scheduler ----------------
 def start_scheduler():
     """Collecte 2x/jour. Activé seulement si ENABLE_SCHEDULER=1
