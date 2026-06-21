@@ -45,7 +45,7 @@ def _clean(html: str) -> str:
     return txt
 
 
-def collect(source: dict, since_hours: int = 168, max_items: int = 4) -> list[dict]:
+def collect(source: dict, since_hours: int = 168, max_items: int = 2) -> list[dict]:
     """Récupère les épisodes récents d'un podcast source.
     source = {id, name, rss (lien Apple ou RSS direct), theme_hint}"""
     feed_url = resolve_feed_url(source.get("rss", ""))

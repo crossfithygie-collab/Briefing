@@ -52,7 +52,7 @@ def _get_transcript(video_id: str) -> str:
     return ""
 
 
-def collect(source: dict, since_hours: int = 168, max_items: int = 3) -> list[dict]:
+def collect(source: dict, since_hours: int = 168, max_items: int = 2) -> list[dict]:
     """source = {id, name, channel, channel_id (cache), theme_hint}"""
     cid = source.get("channel_id") or resolve_channel_id(source.get("channel") or source.get("name"))
     if not cid:
@@ -74,8 +74,8 @@ def collect(source: dict, since_hours: int = 168, max_items: int = 3) -> list[di
         desc = ""
         if hasattr(e, "media_description"):
             desc = e.media_description or ""
-        transcript = _get_transcript(vid) if vid else ""
-        body = transcript or desc
+        # transcript désactivé (trop gourmand en RAM sur Render Free) : on résume titre + description
+        body = desc
         if len(body) < 60:
             body = (desc or e.get("title", ""))
         out.append({

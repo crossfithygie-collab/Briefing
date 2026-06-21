@@ -38,7 +38,7 @@ def summarize_item(item: dict) -> dict | None:
         source_type=item["source_type"],
         source_name=item["source_name"],
         title=item["title"],
-        raw_text=item["raw_text"][:5000],
+        raw_text=item["raw_text"][:2500],
         themes=", ".join(THEMES),
     ) + "\n\n" + HERO_NOTE
     try:
@@ -78,3 +78,16 @@ def build_briefing(raw_items: list[dict]) -> dict:
     summarized.sort(key=lambda x: x["importance"], reverse=True)
     hero = summarized[0]
     return {"hero": hero, "items": summarized[1:]}
+
+
+if __name__ == "__main__":
+    # Test à sec si pas de clé
+    if not os.environ.get("ANTHROPIC_API_KEY"):
+        print("Pas de clé ANTHROPIC_API_KEY — test sauté.")
+    else:
+        demo = [{
+            "source_type": "podcast", "source_name": "LEGEND",
+            "title": "Interview d'un entrepreneur", "theme_hint": "Société/Inspiration",
+            "raw_text": "Un entrepreneur raconte comment il a bâti son réseau de salles de sport en partant de zéro, les erreurs de recrutement, la fidélisation des membres.",
+        }]
+        print(json.dumps(build_briefing(demo), ensure_ascii=False, indent=2))
