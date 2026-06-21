@@ -3,8 +3,8 @@
   "collect_times": ["07:00", "19:00"],
   "sources": {
     "mail": [
-      { "id": "mcu", "name": "Morning Chalk Up", "match": "morning chalk up", "theme_hint": "CrossFit" },
-      { "id": "cf",  "name": "CrossFit",          "match": "crossfit",          "theme_hint": "CrossFit" }
+      { "id": "mcu", "name": "Morning Chalk Up", "match": "morningchalkup", "theme_hint": "CrossFit" },
+      { "id": "cf",  "name": "CrossFit",          "match": "crossfit",       "theme_hint": "CrossFit" }
     ],
     "youtube": [
       { "id": "mayhem", "name": "Mayhem CrossFit", "handle": "@CFProjectMayhem", "channel_id": "UChnsdG5s-4v0oP77Up0fJQQ", "theme_hint": "CrossFit" }
