@@ -68,27 +68,34 @@ def collect(sources, since_hours: int = 168, max_per_source: int = 2):
     try:
         imap = imaplib.IMAP4_SSL(IMAP_HOST)
         imap.login(GMAIL_USER, GMAIL_APP_PWD)
-        # "[Gmail]/All Mail" inclut les mails archivés (hors INBOX) ; fallback INBOX si indispo
-        try:
-            imap.select('"[Gmail]/All Mail"', readonly=True)
-        except Exception:
-            imap.select("INBOX", readonly=True)
     except Exception as e:
-        print("Gmail IMAP indisponible:", e)
+        print("Gmail IMAP login échoué:", e)
         return []
+
+    # choisit le dossier qui contient le plus de mails (All Mail si dispo, sinon INBOX)
+    folder = "INBOX"
+    for cand in ['"[Gmail]/All Mail"', '"[Gmail]/Tous les messages"', "INBOX"]:
+        typ, _ = imap.select(cand, readonly=True)
+        if typ == "OK":
+            folder = cand
+            break
+    print(f"[mail] dossier sélectionné: {folder}")
 
     since = (datetime.now(timezone.utc) - timedelta(hours=since_hours)).strftime("%d-%b-%Y")
     out = []
     for src in sources:
-        # FROM filtre par fragment d'expéditeur ; SINCE borne la date
         crit = f'(FROM "{src["match"]}" SINCE {since})'
         try:
             typ, data = imap.search(None, crit)
-        except Exception:
+        except Exception as e:
+            print(f"[mail] {src['name']}: recherche échouée ({e})")
             continue
-        if typ != "OK":
+        if typ != "OK" or not data or not data[0]:
+            print(f"[mail] {src['name']}: 0 résultat (filtre '{src['match']}')")
             continue
-        ids = data[0].split()[-max_per_source:]
+        all_ids = data[0].split()
+        print(f"[mail] {src['name']}: {len(all_ids)} mails trouvés (filtre '{src['match']}')")
+        ids = all_ids[-max_per_source:]
         for num in reversed(ids):
             typ, raw = imap.fetch(num, "(RFC822)")
             if typ != "OK" or not raw or not raw[0]:
