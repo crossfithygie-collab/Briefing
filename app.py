@@ -102,9 +102,9 @@ def api_sources_set():
     return jsonify(ok=True)
 
 
-@app.post("/api/collect")
+@app.route("/api/collect", methods=["GET", "POST"])
 def api_collect():
-    # déclenchement manuel ou par cron externe : protégé par token
+    # déclenchement manuel (clic Safari = GET) ou par cron externe : protégé par token
     if COLLECT_TOKEN:
         sent = request.headers.get("X-Collect-Token") or request.args.get("token", "")
         if sent != COLLECT_TOKEN:
