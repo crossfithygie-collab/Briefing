@@ -7,10 +7,10 @@
       { "id": "cf",  "name": "CrossFit",          "match": "crossfit",          "theme_hint": "CrossFit" }
     ],
     "youtube": [
-      { "id": "mayhem", "name": "Mayhem CrossFit", "handle": "@MayhemCrossFit", "channel_id": "", "theme_hint": "CrossFit" }
+      { "id": "mayhem", "name": "Mayhem CrossFit", "handle": "@CFProjectMayhem", "channel_id": "UChnsdG5s-4v0oP77Up0fJQQ", "theme_hint": "CrossFit" }
     ],
     "podcast": [
-      { "id": "legend", "name": "LEGEND", "rss": "https://feeds.acast.com/public/shows/legend", "theme_hint": "Société/Inspiration" }
+      { "id": "legend", "name": "LEGEND", "rss": "https://podcasts.apple.com/fr/podcast/legend/id1691740320", "theme_hint": "Société/Inspiration" }
     ]
   }
 }
