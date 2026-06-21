@@ -60,7 +60,7 @@ def _body_text(msg) -> str:
     return re.sub(r"\s+", " ", raw).strip()
 
 
-def collect(sources, since_hours: int = 36, max_per_source: int = 3):
+def collect(sources, since_hours: int = 168, max_per_source: int = 3):
     """sources = [{id, name, match (texte expéditeur), theme_hint}, ...]"""
     if not GMAIL_USER or not GMAIL_APP_PWD:
         print("Gmail: identifiants manquants (GMAIL_USER / GMAIL_APP_PWD)")

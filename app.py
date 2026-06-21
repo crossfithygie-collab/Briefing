@@ -33,29 +33,33 @@ def run_collection():
     raw = []
     # Mails
     try:
-        raw += gmail.collect(cfg["sources"].get("mail", []))
+        m = gmail.collect(cfg["sources"].get("mail", []))
+        print(f"[mail] {len(m)} items")
+        raw += m
     except Exception as e:
-        print("collect mail:", e)
+        import traceback; print("collect mail ERREUR:", e); traceback.print_exc()
     # YouTube
     for src in cfg["sources"].get("youtube", []):
         try:
             got = youtube.collect(src)
+            print(f"[yt] {src.get('name')}: {len(got)} items (channel_id={src.get('channel_id')})")
             raw += got
-            # cache du channel_id résolu
             if src.get("channel_id"):
                 store.save_sources(cfg)
         except Exception as e:
-            print("collect yt:", e)
+            import traceback; print("collect yt ERREUR:", e); traceback.print_exc()
     # Podcasts
     for src in cfg["sources"].get("podcast", []):
         try:
-            raw += podcasts.collect(src)
+            p = podcasts.collect(src)
+            print(f"[pod] {src.get('name')}: {len(p)} items")
+            raw += p
         except Exception as e:
-            print("collect pod:", e)
+            import traceback; print("collect pod ERREUR:", e); traceback.print_exc()
 
     print(f"[collecte] {len(raw)} items bruts récupérés")
     if not raw:
-        return {"collected": 0}
+        return {"collected": 0, "detail": "aucun item — voir logs"}
     briefing = build_briefing(raw)
     store.replace_today(briefing)
     n = (1 if briefing.get("hero") else 0) + len(briefing.get("items", []))
@@ -148,6 +152,19 @@ def api_add():
     briefing = {"hero": items_list[0], "items": items_list[1:]}
     store.replace_today(briefing)
     return jsonify(ok=True)
+
+
+@app.route("/api/reload-config", methods=["GET", "POST"])
+def api_reload_config():
+    """Force le rechargement de config.json dans la base (efface l'ancienne config figée)."""
+    if COLLECT_TOKEN:
+        sent = request.headers.get("X-Collect-Token") or request.args.get("token", "")
+        if sent != COLLECT_TOKEN:
+            return jsonify(error="unauthorized"), 401
+    with open("config.json", encoding="utf-8") as f:
+        cfg = json.load(f)
+    store.save_sources(cfg)
+    return jsonify(ok=True, reloaded=True)
 
 
 @app.get("/")
