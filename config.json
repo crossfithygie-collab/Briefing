@@ -1,0 +1,16 @@
+{
+  "themes": ["CrossFit", "Business", "Rétention", "Nutrition", "Coaching", "Société/Inspiration"],
+  "collect_times": ["07:00", "19:00"],
+  "sources": {
+    "mail": [
+      { "id": "mcu", "name": "Morning Chalk Up", "match": "morning chalk up", "theme_hint": "CrossFit" },
+      { "id": "cf",  "name": "CrossFit",          "match": "crossfit",          "theme_hint": "CrossFit" }
+    ],
+    "youtube": [
+      { "id": "mayhem", "name": "Mayhem CrossFit", "handle": "@MayhemCrossFit", "channel_id": "", "theme_hint": "CrossFit" }
+    ],
+    "podcast": [
+      { "id": "legend", "name": "LEGEND", "rss": "https://feeds.acast.com/public/shows/legend", "theme_hint": "Société/Inspiration" }
+    ]
+  }
+}

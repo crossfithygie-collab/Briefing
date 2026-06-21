@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: briefing-hygie
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: GMAIL_USER
+        sync: false
+      - key: GMAIL_APP_PWD
+        sync: false
+      - key: YOUTUBE_API_KEY
+        sync: false
+      - key: COLLECT_TOKEN
+        sync: false

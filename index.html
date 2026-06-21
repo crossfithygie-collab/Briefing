@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Briefing">
+<meta name="theme-color" content="#ffffff">
+<title>Briefing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  :root {
+    --bg:#ffffff; --ink:#0f1115; --ink2:#6b7280; --ink3:#9ca3af;
+    --line:#eef0f2; --accent:#ff5a1f; --chip:#f4f5f7;
+  }
+  html,body { height:100%; overscroll-behavior-y:contain; }
+  body {
+    font-family:'Plus Jakarta Sans',sans-serif; background:var(--bg); color:var(--ink);
+    display:flex; flex-direction:column; overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  button { font-family:inherit; }
+
+  /* TOP */
+  .top { padding:max(14px,env(safe-area-inset-top)) 20px 6px; display:flex; align-items:flex-end; justify-content:space-between; flex-shrink:0; }
+  .top .date { font-size:12.5px; font-weight:600; color:var(--ink3); letter-spacing:.02em; text-transform:capitalize; }
+  .top h1 { font-size:27px; font-weight:800; letter-spacing:-.03em; margin-top:2px; }
+  .top h1 b { color:var(--accent); }
+  .avatar { width:38px; height:38px; border-radius:50%; background:linear-gradient(135deg,#ff5a1f,#ff9456); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; flex-shrink:0; }
+
+  /* TABS */
+  .tabs { display:flex; gap:6px; padding:14px 20px 10px; overflow-x:auto; scrollbar-width:none; flex-shrink:0; }
+  .tabs::-webkit-scrollbar { display:none; }
+  .tab { flex:0 0 auto; padding:9px 16px; border-radius:100px; font-size:14px; font-weight:600; color:var(--ink2); background:var(--chip); border:none; white-space:nowrap; cursor:pointer; transition:all .2s; }
+  .tab.on { background:var(--ink); color:#fff; }
+
+  /* PAGES */
+  .page { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:6px 20px 100px; display:none; }
+  .page.on { display:block; }
+
+  /* HERO */
+  .hero { position:relative; border-radius:24px; overflow:hidden; aspect-ratio:4/5; margin-bottom:22px; cursor:pointer; }
+  .hero-bg { width:100%; height:100%; }
+  .hero-grad { position:absolute; inset:0; background:linear-gradient(to top,rgba(8,9,12,.93) 0%,rgba(8,9,12,.32) 46%,transparent 72%); }
+  .hero-body { position:absolute; left:0; right:0; bottom:0; padding:22px; }
+  .hero .badge { display:inline-block; font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:#fff; background:var(--accent); padding:5px 11px; border-radius:7px; margin-bottom:12px; }
+  .hero h2 { color:#fff; font-size:24px; font-weight:800; line-height:1.12; letter-spacing:-.02em; }
+  .hero .meta { color:rgba(255,255,255,.72); font-size:12.5px; font-weight:500; margin-top:10px; }
+
+  .sec { display:flex; align-items:center; justify-content:space-between; margin:4px 2px 10px; }
+  .sec h3 { font-size:18px; font-weight:800; letter-spacing:-.02em; }
+  .sec span { font-size:13px; font-weight:600; color:var(--ink3); }
+
+  /* CARD */
+  .card { display:flex; gap:14px; padding:14px 0; border-bottom:1px solid var(--line); cursor:pointer; }
+  .card:last-child { border-bottom:none; }
+  .thumb { flex:0 0 92px; width:92px; height:92px; border-radius:16px; overflow:hidden; position:relative; }
+  .thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+  .thumb .gen { width:100%; height:100%; display:flex; align-items:center; justify-content:center; }
+  .thumb .gen.mail { background:linear-gradient(135deg,#fff1e8,#ffd9c2); }
+  .thumb .gen.pod  { background:linear-gradient(135deg,#e8f3ec,#cde6d6); }
+  .thumb .gen.yt   { background:linear-gradient(135deg,#fde8e8,#f5c6c6); }
+  .thumb .gen svg { width:30px; height:30px; opacity:.6; }
+  .thumb .src-dot { position:absolute; top:7px; left:7px; width:22px; height:22px; border-radius:7px; display:flex; align-items:center; justify-content:center; }
+  .thumb .src-dot svg { width:13px; height:13px; }
+  .card-body { flex:1; min-width:0; display:flex; flex-direction:column; }
+  .card .src { font-size:11.5px; font-weight:700; letter-spacing:.03em; margin-bottom:5px; }
+  .src.mail { color:#e0701f; } .src.yt { color:#c0392b; } .src.pod { color:#2e8b57; }
+  .card h4 { font-size:15.5px; font-weight:700; line-height:1.22; letter-spacing:-.01em; }
+  .card p { font-size:13px; color:var(--ink2); line-height:1.4; margin-top:5px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .card .foot { margin-top:auto; font-size:11.5px; color:var(--ink3); font-weight:500; padding-top:7px; }
+
+  /* EMPTY */
+  .empty { text-align:center; padding:70px 30px; color:var(--ink3); }
+  .empty svg { width:48px; height:48px; opacity:.3; margin-bottom:16px; }
+  .empty h3 { font-size:17px; font-weight:700; color:var(--ink2); margin-bottom:8px; }
+  .empty p { font-size:14px; line-height:1.5; }
+  .empty button { margin-top:20px; background:var(--accent); color:#fff; border:none; padding:13px 22px; border-radius:13px; font-size:14px; font-weight:700; cursor:pointer; }
+
+  /* FAB */
+  .fab { position:fixed; right:20px; bottom:calc(86px + env(safe-area-inset-bottom)); width:56px; height:56px; border-radius:18px; background:var(--accent); color:#fff; border:none; box-shadow:0 8px 24px rgba(255,90,31,.4); display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:50; }
+  .fab svg { width:26px; height:26px; }
+
+  /* NAV */
+  .nav { position:fixed; left:0; right:0; bottom:0; padding:10px 36px max(10px,env(safe-area-inset-bottom)); background:rgba(255,255,255,.88); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-top:1px solid var(--line); display:flex; justify-content:space-between; z-index:40; }
+  .nav button { background:none; border:none; display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--ink3); font-size:10px; font-weight:600; cursor:pointer; flex:1; }
+  .nav button.on { color:var(--ink); }
+  .nav button.on svg { color:var(--accent); }
+  .nav svg { width:23px; height:23px; }
+
+  /* SHEET */
+  .sheet-bg { position:fixed; inset:0; background:rgba(8,9,12,.5); backdrop-filter:blur(3px); z-index:60; opacity:0; pointer-events:none; transition:opacity .25s; }
+  .sheet-bg.on { opacity:1; pointer-events:auto; }
+  .sheet { position:fixed; left:0; right:0; bottom:0; background:#fff; border-radius:26px 26px 0 0; z-index:70; transform:translateY(100%); transition:transform .3s cubic-bezier(.32,.72,0,1); max-height:90vh; overflow-y:auto; padding-bottom:env(safe-area-inset-bottom); }
+  .sheet.on { transform:translateY(0); }
+  .sheet-grip { width:38px; height:5px; border-radius:3px; background:#e2e4e8; margin:10px auto 4px; }
+  .sheet-head { padding:8px 22px 16px; }
+  .sheet-head h2 { font-size:21px; font-weight:800; letter-spacing:-.02em; }
+  .sheet-head p { font-size:13.5px; color:var(--ink2); margin-top:4px; line-height:1.45; }
+  .sheet-body { padding:0 22px 24px; }
+
+  .field { margin-bottom:14px; }
+  .field label { display:block; font-size:12.5px; font-weight:700; color:var(--ink2); margin-bottom:7px; }
+  .seg { display:flex; gap:6px; margin-bottom:14px; }
+  .seg button { flex:1; padding:11px 6px; border-radius:12px; border:1.5px solid var(--line); background:#fff; font-size:13px; font-weight:600; color:var(--ink2); cursor:pointer; transition:all .15s; }
+  .seg button.on { border-color:var(--accent); background:#fff6f2; color:var(--accent); }
+  textarea, input[type=text] { width:100%; border:1.5px solid var(--line); border-radius:13px; padding:13px; font-family:inherit; font-size:15px; color:var(--ink); resize:vertical; background:#fbfbfc; }
+  textarea:focus, input:focus { outline:none; border-color:var(--accent); background:#fff; }
+  textarea { min-height:120px; }
+  .btn-primary { width:100%; background:var(--accent); color:#fff; border:none; padding:15px; border-radius:14px; font-size:15px; font-weight:700; cursor:pointer; margin-top:6px; display:flex; align-items:center; justify-content:center; gap:9px; }
+  .btn-primary:disabled { opacity:.55; }
+  .spinner { width:17px; height:17px; border:2.4px solid rgba(255,255,255,.4); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  /* DETAIL */
+  .detail-head { position:relative; aspect-ratio:16/10; }
+  .detail-head .gen { width:100%; height:100%; display:flex; align-items:center; justify-content:center; }
+  .detail-head .gen svg { width:54px; height:54px; opacity:.5; }
+  .detail-head img { width:100%; height:100%; object-fit:cover; }
+  .detail-close { position:absolute; top:calc(12px + env(safe-area-inset-top)); left:14px; width:38px; height:38px; border-radius:50%; background:rgba(255,255,255,.92); border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; backdrop-filter:blur(6px); }
+  .detail-save { position:absolute; top:calc(12px + env(safe-area-inset-top)); right:14px; width:38px; height:38px; border-radius:50%; background:rgba(255,255,255,.92); border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; backdrop-filter:blur(6px); }
+  .detail-body { padding:22px; }
+  .detail-body .badge { display:inline-block; font-size:11px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--accent); background:#fff6f2; padding:5px 11px; border-radius:7px; margin-bottom:14px; }
+  .detail-body h1 { font-size:24px; font-weight:800; line-height:1.16; letter-spacing:-.02em; margin-bottom:10px; }
+  .detail-body .meta { font-size:13px; color:var(--ink3); font-weight:500; margin-bottom:22px; }
+  .detail-body .pts { list-style:none; }
+  .detail-body .pts li { display:flex; gap:12px; padding:13px 0; border-bottom:1px solid var(--line); font-size:15px; line-height:1.5; color:#26282d; }
+  .detail-body .pts li b { color:var(--accent); font-weight:800; flex-shrink:0; }
+  .detail-body .open { display:flex; align-items:center; justify-content:center; gap:8px; margin-top:24px; background:var(--ink); color:#fff; padding:15px; border-radius:14px; font-size:15px; font-weight:700; text-decoration:none; }
+
+  /* SETTINGS */
+  .set-grp { margin-bottom:26px; }
+  .set-grp h3 { font-size:13px; font-weight:700; color:var(--ink3); text-transform:uppercase; letter-spacing:.05em; margin-bottom:12px; }
+  .set-row { display:flex; align-items:center; gap:13px; padding:13px 0; border-bottom:1px solid var(--line); }
+  .set-ico { width:38px; height:38px; border-radius:11px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .set-ico svg { width:19px; height:19px; }
+  .set-row .info { flex:1; min-width:0; }
+  .set-row .info b { font-size:14.5px; font-weight:700; display:block; }
+  .set-row .info small { font-size:12px; color:var(--ink3); }
+  .set-del { background:none; border:none; color:var(--ink3); cursor:pointer; padding:6px; }
+  .set-del svg { width:18px; height:18px; }
+  .toast { position:fixed; left:50%; bottom:calc(96px + env(safe-area-inset-bottom)); transform:translateX(-50%) translateY(20px); background:var(--ink); color:#fff; padding:12px 20px; border-radius:13px; font-size:13.5px; font-weight:600; z-index:90; opacity:0; pointer-events:none; transition:all .3s; white-space:nowrap; }
+  .toast.on { opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+  <!-- TOP -->
+  <div class="top">
+    <div>
+      <div class="date" id="today">—</div>
+      <h1>Ton <b>Briefing</b></h1>
+    </div>
+    <div class="avatar">J</div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs" id="tabs"></div>
+
+  <!-- PAGE FEED -->
+  <div class="page on" id="page-feed"></div>
+
+  <!-- PAGE SAVED -->
+  <div class="page" id="page-saved"></div>
+
+  <!-- PAGE SETTINGS -->
+  <div class="page" id="page-set"></div>
+
+  <!-- FAB -->
+  <button class="fab" id="fab" onclick="openAdd()" aria-label="Ajouter">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
+  </button>
+
+  <!-- NAV -->
+  <div class="nav">
+    <button class="on" data-page="feed" onclick="nav('feed')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg>Feed
+    </button>
+    <button data-page="saved" onclick="nav('saved')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h14v17l-7-4-7 4V4z"/></svg>Sauvegardés
+    </button>
+    <button data-page="set" onclick="nav('set')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 008 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H2a2 2 0 010-4h.09A1.65 1.65 0 004.6 8a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V2a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Réglages
+    </button>
+  </div>
+
+  <!-- SHEET ADD -->
+  <div class="sheet-bg" id="sheetBg" onclick="closeSheet()"></div>
+  <div class="sheet" id="sheet">
+    <div class="sheet-grip"></div>
+    <div class="sheet-head">
+      <h2>Ajouter au briefing</h2>
+      <p>Colle un lien YouTube, le texte d'un mail/newsletter, ou la description d'un épisode. Claude le résume et le classe.</p>
+    </div>
+    <div class="sheet-body">
+      <div class="seg" id="segType">
+        <button class="on" data-t="mail" onclick="setType('mail')">Mail</button>
+        <button data-t="yt" onclick="setType('yt')">YouTube</button>
+        <button data-t="pod" onclick="setType('pod')">Podcast</button>
+      </div>
+      <div class="field" id="fldUrl" style="display:none">
+        <label>Lien</label>
+        <input type="text" id="inUrl" placeholder="https://youtube.com/watch?v=...">
+      </div>
+      <div class="field">
+        <label id="lblContent">Contenu à résumer</label>
+        <textarea id="inContent" placeholder="Colle ici le texte du mail / la description de l'épisode..."></textarea>
+      </div>
+      <button class="btn-primary" id="btnAdd" onclick="doAdd()">
+        <span>Résumer & ajouter</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- DETAIL -->
+  <div class="sheet-bg" id="detailBg" onclick="closeDetail()"></div>
+  <div class="sheet" id="detail"></div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+// ===== CONFIG BACKEND =====
+// Servie par le backend : API_BASE vide = même origine (le serveur sert cette page).
+// Mode démo si le backend ne répond pas.
+const API_BASE = "";            // ex: "" (même serveur) ou "https://briefing-xxx.onrender.com"
+let ONLINE = false;             // basculé à true si /api/health répond
+// ==========================
+
+const THEMES = ["CrossFit","Business","Rétention","Nutrition","Coaching","Société/Inspiration"];
+let items = [];      // tous les items
+let activeTab = "Tout";
+let curType = "mail";
+
+async function api(path, opts){
+  const r = await fetch(API_BASE + path, Object.assign({headers:{"Content-Type":"application/json"}}, opts||{}));
+  if(!r.ok) throw new Error("API "+r.status);
+  return r.json();
+}
+async function checkBackend(){
+  try { await api("/api/health"); ONLINE = true; } catch(e){ ONLINE = false; }
+}
+function mapServerItem(it, hero){
+  return { id: it.uid || uid(), type: it.source_type==='youtube'?'yt':it.source_type==='podcast'?'pod':'mail',
+    source: it.source_name, theme: it.theme, title: it.titre || it.title,
+    points: it.resume ? splitPoints(it.resume) : (it.points||[]),
+    meta: it.published ? '' : '', url: it.url||'', img: it.thumbnail||'',
+    saved:false, ts: it.published ? Date.parse(it.published)||Date.now() : Date.now(), hero: !!hero, resume: it.resume };
+}
+function splitPoints(resume){
+  // le backend renvoie un résumé en prose : on le garde tel quel comme 1er "point"
+  return [resume];
+}
+
+// ---------- persistence ----------
+async function loadData(){
+  await checkBackend();
+  if (ONLINE){
+    try {
+      const b = await api("/api/briefing");
+      const arr = [];
+      if (b.hero) arr.push(mapServerItem(b.hero, true));
+      (b.items||[]).forEach(it=>arr.push(mapServerItem(it,false)));
+      const saved = await api("/api/saved");
+      const savedUids = new Set((saved||[]).map(s=>s.uid||s.id));
+      arr.forEach(i=>{ if(savedUids.has(i.id)) i.saved=true; });
+      items = arr;
+      return;
+    } catch(e){ ONLINE=false; }
+  }
+  // mode démo (hors backend)
+  if (!items.length) items = seed();
+}
+function save(){ render(); }  // en mode online, les actions persistent via l'API directement
+
+function seed() {
+  return [
+    { id:uid(), type:"mail", source:"Morning Chalk Up", theme:"CrossFit", title:"CrossFit dévoile le format des Semifinals 2026", points:["Trois jours de compétition au lieu de quatre cette année.","Un événement surprise annoncé seulement 24h avant le départ.","Les quotas de qualification par région restent identiques à 2025."], meta:"reçu ce matin", url:"", saved:false, ts:Date.now()-3600e3, hero:true },
+    { id:uid(), type:"yt", source:"Mayhem CrossFit", theme:"Coaching", title:"Froning décortique la programmation force du bloc", points:["Privilégier des cycles d'intensité courts plutôt que de gros volumes.","La récupération entre séries lourdes prime sur le tonnage total.","Adapter la charge à la fréquence réelle des membres (5x/sem)."], meta:"14 min", url:"", saved:false, ts:Date.now()-7200e3 },
+    { id:uid(), type:"pod", source:"LEGEND", theme:"Société/Inspiration", title:"Un parcours de résilience qui bouscule les certitudes", points:["L'invité raconte comment il a transformé un échec en moteur.","La discipline quotidienne décrite est transposable au coaching.","Une réflexion sur le sens du travail qui résonne avec l'entrepreneuriat."], meta:"58 min", url:"", saved:false, ts:Date.now()-10800e3 }
+  ];
+}
+function uid(){ return Math.random().toString(36).slice(2,10); }
+
+// ---------- helpers ----------
+const SRC = {
+  mail:{ label:"mail", cls:"mail", color:"rgba(224,112,31,.9)", icon:'<path d="M4 4h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2zm0 4l8 5 8-5"/>' },
+  yt:{ label:"YouTube", cls:"yt", color:"rgba(192,57,43,.9)", icon:'<path d="M10 8l6 4-6 4V8z"/>' },
+  pod:{ label:"Podcast", cls:"pod", color:"rgba(46,139,87,.9)", icon:'<path d="M12 14a3 3 0 003-3V6a3 3 0 00-6 0v5a3 3 0 003 3zm5-3a5 5 0 01-10 0H5a7 7 0 006 6.9V21h2v-3.1A7 7 0 0019 11h-2z"/>' }
+};
+function thumbHTML(it, big){
+  const s = SRC[it.type];
+  if (it.img) return `<img src="${it.img}" alt="">`;
+  return `<div class="gen ${it.type==='yt'?'yt':it.type==='pod'?'pod':'mail'}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="${it.type==='mail'?'#e0701f':it.type==='pod'?'#2e8b57':'#c0392b'}" stroke-width="1.5">${s.icon}</svg></div>`;
+}
+function fmtAge(ts){
+  const m = Math.floor((Date.now()-ts)/60000);
+  if (m<60) return `il y a ${m} min`;
+  const h = Math.floor(m/60); if (h<24) return `il y a ${h} h`;
+  return `il y a ${Math.floor(h/24)} j`;
+}
+
+// ---------- render ----------
+function render(){
+  // date
+  document.getElementById('today').textContent =
+    new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+  renderTabs();
+  renderFeed();
+  renderSaved();
+  renderSettings();
+}
+function renderTabs(){
+  const t = document.getElementById('tabs');
+  const all = ["Tout",...THEMES];
+  t.innerHTML = all.map(x=>`<button class="tab ${x===activeTab?'on':''}" onclick="setTab('${x.replace(/'/g,"\\'")}')">${x}</button>`).join('');
+}
+function setTab(x){ activeTab=x; renderTabs(); renderFeed(); }
+
+function renderFeed(){
+  const p = document.getElementById('page-feed');
+  let list = items.filter(i=>activeTab==="Tout"||i.theme===activeTab).sort((a,b)=>b.ts-a.ts);
+  if (!list.length){ p.innerHTML = emptyFeed(); return; }
+  const hero = list.find(i=>i.hero) || list[0];
+  const rest = list.filter(i=>i.id!==hero.id);
+  let html = heroHTML(hero);
+  if (rest.length){
+    html += `<div class="sec"><h3>Le reste du jour</h3><span>${rest.length} item${rest.length>1?'s':''}</span></div>`;
+    html += rest.map(cardHTML).join('');
+  }
+  p.innerHTML = html;
+}
+function heroHTML(it){
+  const s = SRC[it.type];
+  const bg = it.img ? `<img class="hero-bg" src="${it.img}">` :
+    `<div class="hero-bg" style="background:radial-gradient(circle at 35% 30%,#3a4150,#11141a)"></div>`;
+  return `<div class="hero" onclick="openDetail('${it.id}')">
+    ${bg}<div class="hero-grad"></div>
+    <div class="hero-body">
+      <span class="badge">À la une · ${it.theme}</span>
+      <h2>${esc(it.title)}</h2>
+      <div class="meta">${s.label} · ${esc(it.source)} · ${esc(it.meta||'')}</div>
+    </div></div>`;
+}
+function cardHTML(it){
+  const s = SRC[it.type];
+  return `<div class="card" onclick="openDetail('${it.id}')">
+    <div class="thumb">
+      <div class="src-dot" style="background:${s.color}"><svg viewBox="0 0 24 24" fill="#fff">${s.icon}</svg></div>
+      ${thumbHTML(it)}
+    </div>
+    <div class="card-body">
+      <span class="src ${s.cls}">${s.label} · ${esc(it.source)}</span>
+      <h4>${esc(it.title)}</h4>
+      <p>${esc(it.points[0]||'')}</p>
+      <div class="foot">${esc(it.meta||'')} · ${it.points.length} points clés</div>
+    </div></div>`;
+}
+function emptyFeed(){
+  return `<div class="empty">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 016.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+    <h3>Rien dans « ${activeTab} »</h3>
+    <p>Ajoute du contenu avec le bouton +.<br>Claude le résumera et le rangera ici.</p>
+    <button onclick="openAdd()">Ajouter un item</button>
+  </div>`;
+}
+
+function renderSaved(){
+  const p = document.getElementById('page-saved');
+  const list = items.filter(i=>i.saved).sort((a,b)=>b.ts-a.ts);
+  if(!list.length){ p.innerHTML = `<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 4h14v17l-7-4-7 4V4z"/></svg><h3>Aucun favori</h3><p>Tape l'icône marque-page sur un article pour le garder ici.</p></div>`; return; }
+  p.innerHTML = `<div class="sec" style="margin-top:8px"><h3>Sauvegardés</h3><span>${list.length}</span></div>` + list.map(cardHTML).join('');
+}
+
+function renderSettings(){
+  const p = document.getElementById('page-set');
+  const grp = (title, arr, type) => {
+    const s = SRC[type];
+    return `<div class="set-grp"><h3>${title}</h3>${
+      arr.length? arr.map(x=>`<div class="set-row">
+        <div class="set-ico" style="background:${type==='mail'?'#fff1e8':type==='pod'?'#e8f3ec':'#fde8e8'}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="${type==='mail'?'#e0701f':type==='pod'?'#2e8b57':'#c0392b'}" stroke-width="1.8">${s.icon}</svg></div>
+        <div class="info"><b>${esc(x.name)}</b><small>${esc(x.detail||'')}</small></div>
+      </div>`).join('') : `<div style="font-size:13px;color:var(--ink3);padding:4px 0">Aucune source.</div>`
+    }</div>`;
+  };
+  p.innerHTML = `<div style="margin-top:8px">
+    ${grp('Newsletters / Mails',[{name:'Morning Chalk Up',detail:'CrossFit'},{name:'CrossFit',detail:'CrossFit'}],'mail')}
+    ${grp('Chaînes YouTube',[{name:'Mayhem CrossFit',detail:'@MayhemCrossFit'}],'yt')}
+    ${grp('Podcasts',[{name:'LEGEND',detail:'Société/Inspiration'}],'pod')}
+    <div class="set-grp"><h3>Automatisation</h3>
+      <div style="font-size:13.5px;color:var(--ink2);line-height:1.55;background:#fbfbfc;border:1px solid var(--line);border-radius:14px;padding:15px">
+        Collecte auto <b>2×/jour</b> (matin & soir).<br>
+        <span style="color:var(--ink3)">Disponible une fois le serveur connecté. Pour l'instant tu ajoutes le contenu manuellement avec le bouton +.</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function esc(s){ return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+// ---------- nav ----------
+function nav(pg){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.getElementById('page-'+pg).classList.add('on');
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('on',b.dataset.page===pg));
+  document.getElementById('tabs').style.display = pg==='feed'?'flex':'none';
+  document.getElementById('fab').style.display = pg==='set'?'none':'flex';
+}
+
+// ---------- add sheet ----------
+function openAdd(){ document.getElementById('sheetBg').classList.add('on'); document.getElementById('sheet').classList.add('on'); }
+function closeSheet(){ document.getElementById('sheetBg').classList.remove('on'); document.getElementById('sheet').classList.remove('on'); }
+function setType(t){
+  curType=t;
+  document.querySelectorAll('#segType button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+  document.getElementById('fldUrl').style.display = t==='yt'?'block':'none';
+  document.getElementById('lblContent').textContent =
+    t==='yt'?"Titre + description de la vidéo" : t==='pod'?"Titre + description de l'épisode" : "Texte du mail / newsletter";
+  document.getElementById('inContent').placeholder =
+    t==='yt'?"Colle le titre et la description de la vidéo YouTube..." :
+    t==='pod'?"Colle le titre et la description de l'épisode..." :
+    "Colle ici le texte du mail / la newsletter...";
+}
+
+async function doAdd(){
+  const content = document.getElementById('inContent').value.trim();
+  const url = document.getElementById('inUrl').value.trim();
+  if (!content){ toast("Colle d'abord du contenu"); return; }
+  const btn = document.getElementById('btnAdd');
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span><span>Claude résume…</span>';
+  try {
+    if (ONLINE){
+      await api("/api/add", {method:"POST", body:JSON.stringify({content, type:curType, url})});
+      await loadData();
+    } else {
+      const res = await summarize(content, curType);
+      const srcName = res.source || (curType==='mail'?'Mail':curType==='yt'?'YouTube':'Podcast');
+      items.unshift({ id:uid(), type:curType, source:srcName, theme:res.theme, title:res.title,
+        points:res.points, meta:curType==='yt'?'vidéo':curType==='pod'?'épisode':'mail', url:url, saved:false, ts:Date.now() });
+    }
+    closeSheet();
+    document.getElementById('inContent').value=''; document.getElementById('inUrl').value='';
+    nav('feed'); activeTab="Tout"; render();
+    toast("Ajouté au briefing ✓");
+  } catch(e){
+    toast("Erreur : "+(e.message||"réessaie"));
+  } finally {
+    btn.disabled=false; btn.innerHTML='<span>Résumer & ajouter</span>';
+  }
+}
+
+// ---------- Claude summarize ----------
+async function summarize(content, type){
+  const kinds = { mail:"un mail / une newsletter", yt:"une vidéo YouTube", pod:"un épisode de podcast" };
+  const prompt = `Tu es l'assistant d'un gérant de salle de CrossFit. Voici le contenu de ${kinds[type]} :
+
+"""${content}"""
+
+Résume-le pour son briefing quotidien. Réponds UNIQUEMENT en JSON valide, sans texte autour, sans backticks, au format exact :
+{"title":"titre court et accrocheur en français (max 12 mots)","source":"nom de la source/auteur si identifiable, sinon vide","theme":"un seul thème parmi: ${THEMES.join(', ')}","points":["point clé 1","point clé 2","point clé 3"]}
+
+Règles: 3 points clés max, chacun une phrase actionnable et concrète, en français. Choisis le thème le plus pertinent.`;
+  const r = await fetch("https://api.anthropic.com/v1/messages",{
+    method:"POST", headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1000, messages:[{role:"user",content:prompt}] })
+  });
+  if(!r.ok) throw new Error("API "+r.status);
+  const data = await r.json();
+  let txt = data.content.filter(b=>b.type==="text").map(b=>b.text).join("").trim();
+  txt = txt.replace(/```json|```/g,"").trim();
+  const obj = JSON.parse(txt);
+  if(!THEMES.includes(obj.theme)) obj.theme = THEMES[0];
+  if(!Array.isArray(obj.points)) obj.points=[];
+  obj.points = obj.points.slice(0,3);
+  return obj;
+}
+
+// ---------- detail ----------
+function openDetail(id){
+  const it = items.find(x=>x.id===id); if(!it) return;
+  const s = SRC[it.type];
+  const head = it.img ? `<img src="${it.img}">` :
+    `<div class="gen ${it.type==='yt'?'yt':it.type==='pod'?'pod':'mail'}"><svg viewBox="0 0 24 24" fill="none" stroke="${it.type==='mail'?'#e0701f':it.type==='pod'?'#2e8b57':'#c0392b'}" stroke-width="1.4">${s.icon}</svg></div>`;
+  const d = document.getElementById('detail');
+  d.innerHTML = `<div class="detail-head">${head}
+      <button class="detail-close" onclick="closeDetail()"><svg viewBox="0 0 24 24" fill="none" stroke="#0f1115" stroke-width="2.2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+      <button class="detail-save" onclick="toggleSave('${it.id}')"><svg viewBox="0 0 24 24" fill="${it.saved?'#ff5a1f':'none'}" stroke="${it.saved?'#ff5a1f':'#0f1115'}" stroke-width="2"><path d="M5 4h14v17l-7-4-7 4V4z"/></svg></button>
+    </div>
+    <div class="detail-body">
+      <span class="badge">${s.label} · ${esc(it.theme)}</span>
+      <h1>${esc(it.title)}</h1>
+      <div class="meta">${esc(it.source)} · ${esc(it.meta||'')} · ${fmtAge(it.ts)}</div>
+      <ul class="pts">${it.points.map((p,i)=>`<li><b>${i+1}</b><span>${esc(p)}</span></li>`).join('')}</ul>
+      ${it.url?`<a class="open" href="${esc(it.url)}" target="_blank">Ouvrir la source<svg viewBox="0 0 24 24" width="17" fill="none" stroke="#fff" stroke-width="2"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg></a>`:''}
+    </div>`;
+  document.getElementById('detailBg').classList.add('on'); d.classList.add('on');
+}
+function closeDetail(){ document.getElementById('detailBg').classList.remove('on'); document.getElementById('detail').classList.remove('on'); }
+function toggleSave(id){
+  const it=items.find(x=>x.id===id); if(!it) return;
+  it.saved=!it.saved;
+  if (ONLINE){
+    const payload = {uid:it.id, source_type:it.type==='yt'?'youtube':it.type==='pod'?'podcast':'mail',
+      source_name:it.source, titre:it.title, resume:(it.resume||it.points[0]||''), theme:it.theme,
+      url:it.url, thumbnail:it.img||'', published:new Date(it.ts).toISOString()};
+    api(it.saved?"/api/save":"/api/unsave", {method:"POST", body:JSON.stringify(it.saved?payload:{uid:it.id})}).catch(()=>{});
+  }
+  save(); openDetail(id); toast(it.saved?"Sauvegardé ✓":"Retiré");
+}
+
+// ---------- toast ----------
+let toastT;
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'),2200); }
+
+// ---------- init ----------
+setType('mail');
+loadData().then(render);
+</script>
+</body>
+</html>
