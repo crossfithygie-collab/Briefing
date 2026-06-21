@@ -68,7 +68,11 @@ def collect(sources, since_hours: int = 168, max_per_source: int = 2):
     try:
         imap = imaplib.IMAP4_SSL(IMAP_HOST)
         imap.login(GMAIL_USER, GMAIL_APP_PWD)
-        imap.select("INBOX", readonly=True)
+        # "[Gmail]/All Mail" inclut les mails archivés (hors INBOX) ; fallback INBOX si indispo
+        try:
+            imap.select('"[Gmail]/All Mail"', readonly=True)
+        except Exception:
+            imap.select("INBOX", readonly=True)
     except Exception as e:
         print("Gmail IMAP indisponible:", e)
         return []
